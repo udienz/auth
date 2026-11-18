@@ -18,3 +18,7 @@ Compose; this repo is configuration and docs only, no application code.
   Server logic lives in `scripts/deploy.sh`; keep it shellcheck-clean. The server owns `.env`;
   GitHub holds only SSH secrets (repository level). One instance serves both `auth` and
   `auth-qa` hostnames; there is deliberately no second stack (RAM).
+- `public/privacy.html` is the one deliberate exception to "all files in English": it is a public
+  policy for Indonesian users, so it carries Bahasa Indonesia and English side by side. Keep both
+  in step. Do not put the contact address in it; `scripts/render-public.sh` reads it from the
+  server's `.env`.

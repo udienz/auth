@@ -1,0 +1,8 @@
+:root { color-scheme: light dark; --bg:#fff; --fg:#1c1c1c; --muted:#5f6368; --link:#0b57d0; --rule:#e0e0e0; }
+@media (prefers-color-scheme: dark) { :root { --bg:#161616; --fg:#e8e8e8; --muted:#a0a0a0; --link:#8ab4f8; --rule:#333; } }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui, sans-serif; }
+main { max-width:44rem; margin:0 auto; padding:2rem 1rem 3rem; }
+h1 { font-size:1.6rem; margin:0 0 .5rem; } h2 { font-size:1.15rem; margin:1.8rem 0 .4rem; }
+a { color:var(--link); } .muted { color:var(--muted); }
+section.lang { border-top:1px solid var(--rule); margin-top:2.5rem; padding-top:1rem; }
+footer { margin-top:2.5rem; border-top:1px solid var(--rule); padding-top:1rem; color:var(--muted); font-size:.9rem; }
