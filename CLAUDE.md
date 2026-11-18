@@ -1,6 +1,6 @@
 # auth
 
-Central sign-in provider for `udin.web.id` apps (auth.udin.web.id). Runs authentik via Docker
+Central sign-in provider for `udienz.web.id` apps (auth.udienz.web.id). Runs authentik via Docker
 Compose; this repo is configuration and docs only, no application code.
 
 - Language: all files, commit messages and PRs in English.
