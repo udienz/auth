@@ -72,6 +72,27 @@ The app then uses a standard OIDC library with the issuer
 `https://auth.udienz.web.id/application/o/<app-slug>/` (discovery document at
 `.well-known/openid-configuration`). The app stores only the `sub` claim as the user key.
 
+### Registered apps
+
+| Application | Slug | Redirect URIs | Notes |
+|---|---|---|---|
+| Quranweb (production) | `quranweb` | `https://quranweb.udienz.web.id/api/auth/callback/authentik` | Path is provisional until quranweb picks its OIDC library. |
+| Quranweb QA | `quranweb-qa` | `https://quranweb-qa.udienz.web.id/api/auth/callback/authentik`, `http://localhost:3000/api/auth/callback/authentik` | The localhost URI is for local development and exists only on this app. |
+
+Both use implicit consent, a confidential client, the self-signed signing key (RS256) and the
+scopes `openid email profile`. Clients must use PKCE with `S256`. Client secrets live only in
+each app's server environment, never in git. Update this table whenever an app or redirect URI
+changes.
+
+### Sign-in sources and account types
+
+Google (slug `google`) is the only source. Its user matching mode is "Link users on unique
+identifier", so a Google login never merges into an existing local account, even with the same
+email. People who sign in through a source are `external` users: they can sign in to apps but
+cannot open the authentik interface. The only admin is the local `akadmin`-style account with
+a strong password and MFA. The Google OAuth app is in Testing mode (test users only) until
+the privacy policy page of the first app exists.
+
 ## Operations
 
 - Back up the PostgreSQL volume and `data/` regularly, and keep a copy off the server.
