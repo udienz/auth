@@ -29,18 +29,24 @@ support and the certbot steps) is in `deploy/nginx-auth.conf.example`. First set
 
 - **CI** (`ci.yml`, every push to `main` and every PR): validates `docker-compose.yml`, checks that
   the hardening in `CLAUDE.md` is still there, runs shellcheck, and refuses tracked secrets.
-- **Deploy** (`deploy.yml`): pushing a `v*` tag runs `scripts/deploy.sh` on the server over SSH.
-  Only commits on `main` can be released. Roll back by running the workflow for an older tag.
+- **QA** (`deploy-qa.yml`): every push to `main` deploys to https://auth-qa.udienz.web.id, a
+  second, separate authentik stack (`/srv/auth-qa`, port 9001, its own database and secret key).
+  It does nothing until the repository variable `QA_DEPLOY` is `true`.
+- **Production** (`deploy.yml`): pushing a `v*` tag deploys to https://auth.udienz.web.id
+  (`/srv/auth`, port 9000). Only commits on `main` can be released. Roll back by running the
+  workflow for an older tag.
 
 ```bash
 git tag -a v1.0.0 -m "First release" && git push origin v1.0.0
 ```
 
-One-time server setup: clone this repository to `/srv/auth` (or set `AUTH_DIR`), create `.env`
-there from `.env.example`, and add a deploy-only SSH key. In GitHub, create the environment
-`production` and these secrets: `AUTH_SSH_PRIVATE_KEY`, `AUTH_SSH_KNOWN_HOSTS`, `AUTH_SSH_HOST`,
-`AUTH_SSH_PORT`, `AUTH_SSH_USER`. The script dumps the database to `backups/` first (last 7
-kept), pulls the pinned image, restarts the stack and waits for `/-/health/ready/`.
+Both run `scripts/deploy.sh <qa|prod> <sha>` on the server over SSH. One-time setup per
+environment: clone this repository to its directory, create `.env` there from `.env.example`
+(QA must set `COMPOSE_PORT_HTTP=9001` and its own secrets), and add the deploy public key to the
+SSH user's `authorized_keys`. In GitHub the repository secrets are `AUTH_SSH_PRIVATE_KEY`,
+`AUTH_SSH_KNOWN_HOSTS`, `AUTH_SSH_HOST`, `AUTH_SSH_PORT` and `AUTH_SSH_USER`. The script dumps the
+database to `backups/` first (last 7 kept), pulls the pinned image, restarts the stack and waits
+for `/-/health/ready/`.
 
 ## Add Google as a login source
 
