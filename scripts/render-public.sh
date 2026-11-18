@@ -23,4 +23,7 @@ mkdir -p site
 cp public/index.html public/style.css site/
 sed -e "s|@@CONTACT_ID@@|${contact_id}|" -e "s|@@CONTACT_EN@@|${contact_en}|" \
   public/privacy.html > site/privacy.html
+# nginx runs as another user and the server umask is restrictive: make the pages world-readable.
+chmod 755 site
+chmod 644 site/*
 echo "Rendered site/"

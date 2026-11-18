@@ -33,7 +33,8 @@ files in `public/` (`index.html`, `privacy.html`, `style.css`), served by nginx 
 deploy runs `scripts/render-public.sh`, which copies them to `site/` (git-ignored) and fills in
 the contact from `PRIVACY_CONTACT_EMAIL` in the server's `.env` (the address is not in git). The
 nginx locations are in `deploy/nginx-auth.conf.example`; add them to the live site config once and
-reload nginx. Edit `privacy.html` whenever what the service stores or who receives it changes.
+reload nginx. nginx must be able to reach `/srv/auth/site`, so run `chmod o+x /srv/auth` once (it
+allows entering the directory only; its files stay private). Edit `privacy.html` whenever what the service stores or who receives it changes.
 
 ## Deploy (GitHub Actions)
 
