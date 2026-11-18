@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate compose and scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: |
+          cp .env.example .env
+          PG_PASS=ci AUTHENTIK_SECRET_KEY=ci docker compose config -q
+
+      - name: Check hardening is kept
+        run: |
+          # See CLAUDE.md: these must not come back when the file is refreshed from upstream.
+          if grep -n -e 'docker.sock' -e 'user: root' docker-compose.yml; then
+            echo "Hardening removed from docker-compose.yml was put back" >&2
+            exit 1
+          fi
+          grep -q '127.0.0.1:' docker-compose.yml || { echo "HTTP port is not bound to localhost" >&2; exit 1; }
+
+      - name: Shellcheck
+        run: shellcheck scripts/*.sh
+
+      - name: No secrets committed
+        run: |
+          if git ls-files | grep -E '(^|/)\.env$|^data/|^certs/|^backups/'; then
+            echo "Secret or runtime files are tracked" >&2
+            exit 1
+          fi

@@ -24,6 +24,23 @@ authentik listens on `127.0.0.1:9000` only. Put a reverse proxy (nginx, Caddy or
 tunnel) in front of it for `auth.udienz.web.id` with TLS. First setup: open
 `https://auth.udienz.web.id/if/flow/initial-setup/` and create the admin account right away.
 
+## Deploy (GitHub Actions)
+
+- **CI** (`ci.yml`, every push to `main` and every PR): validates `docker-compose.yml`, checks that
+  the hardening in `CLAUDE.md` is still there, runs shellcheck, and refuses tracked secrets.
+- **Deploy** (`deploy.yml`): pushing a `v*` tag runs `scripts/deploy.sh` on the server over SSH.
+  Only commits on `main` can be released. Roll back by running the workflow for an older tag.
+
+```bash
+git tag -a v1.0.0 -m "First release" && git push origin v1.0.0
+```
+
+One-time server setup: clone this repository to `/srv/auth` (or set `AUTH_DIR`), create `.env`
+there from `.env.example`, and add a deploy-only SSH key. In GitHub, create the environment
+`production` and these secrets: `AUTH_SSH_PRIVATE_KEY`, `AUTH_SSH_KNOWN_HOSTS`, `AUTH_SSH_HOST`,
+`AUTH_SSH_PORT`, `AUTH_SSH_USER`. The script dumps the database to `backups/` first (last 7
+kept), pulls the pinned image, restarts the stack and waits for `/-/health/ready/`.
+
 ## Add Google as a login source
 
 1. In Google Cloud Console create an OAuth client (type Web application). Authorized redirect

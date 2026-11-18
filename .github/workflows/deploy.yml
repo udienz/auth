@@ -1,0 +1,68 @@
+name: Deploy
+
+# Deploys to https://auth.udienz.web.id when a `v*` release tag is pushed:
+#   git tag -a v1.0.0 -m "..." && git push origin v1.0.0
+# Only commits that are already on `main` can be released. To roll back, press
+# "Run workflow" and pick an older tag (or re-run an older run).
+#
+# Uses the GitHub Environment `production`. Add "Required reviewers" in
+# Settings > Environments > production for a manual approval before each deploy.
+# Repository or environment secrets: AUTH_SSH_PRIVATE_KEY, AUTH_SSH_KNOWN_HOSTS,
+# AUTH_SSH_HOST, AUTH_SSH_PORT, AUTH_SSH_USER. The server holds `.env` itself;
+# no application secret is ever stored in GitHub.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://auth.udienz.web.id
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require a v* tag on main
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) ;;
+            *) echo "Deploys only from a v* tag, not $GITHUB_REF" >&2; exit 1 ;;
+          esac
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Commit $GITHUB_SHA is not on main, release cancelled" >&2
+            exit 1
+          fi
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.AUTH_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.AUTH_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          SSH_HOST: ${{ secrets.AUTH_SSH_HOST }}
+          SSH_PORT: ${{ secrets.AUTH_SSH_PORT }}
+          SSH_USER: ${{ secrets.AUTH_SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            'bash -s' -- "$GITHUB_SHA" < scripts/deploy.sh
