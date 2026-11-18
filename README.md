@@ -89,7 +89,7 @@ changes.
 Google (slug `google`) is the only source. Its user matching mode is "Link users on unique
 identifier", so a Google login never merges into an existing local account, even with the same
 email. People who sign in through a source are `external` users: they can sign in to apps but
-cannot open the authentik interface. The only admin is the local `akadmin`-style account with
+cannot open the authentik interface. The only admin is the local `akadmin` account, with
 a strong password and MFA. The Google OAuth app is in Testing mode (test users only) until
 the privacy policy page of the first app exists.
 
