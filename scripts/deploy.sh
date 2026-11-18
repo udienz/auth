@@ -19,8 +19,9 @@ git merge-base --is-ancestor "$sha" origin/main || { echo "$sha is not on main" 
 # Dump the database before touching anything, so a bad upgrade can be undone.
 if docker compose ps --status running --services 2>/dev/null | grep -qx postgresql; then
   mkdir -p backups
+  # </dev/null: this script arrives on stdin (`bash -s`), and docker would swallow the rest of it.
   # shellcheck disable=SC2016  # variables are expanded inside the container
-  docker compose exec -T postgresql sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+  docker compose exec -T postgresql sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' </dev/null \
     | gzip > "backups/pre-deploy-$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:7}.sql.gz"
   # shellcheck disable=SC2012
   ls -1t backups/pre-deploy-*.sql.gz | tail -n +$((keep_backups + 1)) | xargs -r rm --
