@@ -1,0 +1,31 @@
+# nginx site for authentik at https://auth.udienz.web.id (proxy to 127.0.0.1:9000).
+# Install as /etc/nginx/sites-available/auth.udienz.web.id, symlink into sites-enabled, then:
+#   sudo nginx -t && sudo systemctl reload nginx
+#   sudo certbot --nginx -d auth.udienz.web.id     # adds the 443 server block and the redirect
+# DNS (Cloudflare) must point auth.udienz.web.id at the server first.
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name auth.udienz.web.id;
+
+    client_max_body_size 5m;
+
+    location / {
+        proxy_pass http://127.0.0.1:9000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # authentik uses WebSockets (admin UI, outposts)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_read_timeout 120s;
+    }
+}

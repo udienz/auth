@@ -21,7 +21,8 @@ docker compose up -d
 ```
 
 authentik listens on `127.0.0.1:9000` only. Put a reverse proxy (nginx, Caddy or a Cloudflare
-tunnel) in front of it for `auth.udienz.web.id` with TLS. First setup: open
+tunnel) in front of it for `auth.udienz.web.id` with TLS. An nginx example (with WebSocket
+support and the certbot steps) is in `deploy/nginx-auth.conf.example`. First setup: open
 `https://auth.udienz.web.id/if/flow/initial-setup/` and create the admin account right away.
 
 ## Deploy (GitHub Actions)
