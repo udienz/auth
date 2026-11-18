@@ -13,6 +13,7 @@ Compose; this repo is configuration and docs only, no application code.
 - Validate config changes with `PG_PASS=x AUTHENTIK_SECRET_KEY=y docker compose config -q`
   (needs an `.env` file to exist; copy `.env.example`).
 - Apps registered here: none yet. List each one in the README when added (slug, redirect URI).
-- CI and deploy: `ci.yml`; `deploy-qa.yml` (every push to `main` -> auth-qa, needs variable
-  `QA_DEPLOY=true`); `deploy.yml` (tag `v*`, only from `main`, Environment `production`). Server logic lives in `scripts/deploy.sh`; keep it
-  shellcheck-clean. The server owns each `.env`; GitHub holds only SSH secrets (repository level).
+- CI and deploy: `ci.yml`; `deploy.yml` (tag `v*`, only from `main`, Environment `production`).
+  Server logic lives in `scripts/deploy.sh`; keep it shellcheck-clean. The server owns `.env`;
+  GitHub holds only SSH secrets (repository level). One instance serves both `auth` and
+  `auth-qa` hostnames; there is deliberately no second stack (RAM).

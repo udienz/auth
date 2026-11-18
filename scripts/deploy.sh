@@ -1,30 +1,17 @@
 #!/usr/bin/env bash
 # Runs on the server (piped over SSH by .github/workflows/deploy.yml):
-#   bash -s -- <qa|prod> <commit-sha> < scripts/deploy.sh
-# Each environment is its own checkout of this repository with its own `.env`, created by
-# hand (see README): prod in /srv/auth, qa in /srv/auth-qa (override with AUTH_DIR). The
-# directory name is the compose project name, so volumes and containers never overlap.
-# Nothing secret is passed through this script.
+#   bash -s -- <commit-sha> < scripts/deploy.sh
+# The server keeps a checkout of this repository in AUTH_DIR (default /srv/auth) and a
+# `.env` file created by hand (see README). Nothing secret is passed through this script.
 set -euo pipefail
 
-env="${1:?usage: deploy.sh <qa|prod> <commit-sha>}"
-sha="${2:?usage: deploy.sh <qa|prod> <commit-sha>}"
-case "$env" in
-  prod) dir="${AUTH_DIR:-/srv/auth}"; default_port=9000 ;;
-  qa) dir="${AUTH_DIR:-/srv/auth-qa}"; default_port=9001 ;;
-  *) echo "environment must be qa or prod, not $env" >&2; exit 1 ;;
-esac
+sha="${1:?usage: deploy.sh <commit-sha>}"
+dir="${AUTH_DIR:-/srv/auth}"
 keep_backups=7
 
 [ -d "$dir/.git" ] || { echo "$dir is not a checkout of udienz/auth (see README)" >&2; exit 1; }
 cd "$dir"
 [ -f .env ] || { echo "$dir/.env is missing" >&2; exit 1; }
-port="$(sed -n 's/^COMPOSE_PORT_HTTP=//p' .env | tail -n 1)"
-port="${port:-9000}"
-if [ "$port" != "$default_port" ]; then
-  echo "$env must use COMPOSE_PORT_HTTP=$default_port in $dir/.env (found $port)" >&2
-  exit 1
-fi
 
 git fetch --quiet origin main
 git merge-base --is-ancestor "$sha" origin/main || { echo "$sha is not on main" >&2; exit 1; }
@@ -45,8 +32,8 @@ docker compose up -d --remove-orphans
 
 echo "Waiting for authentik to become ready..."
 for _ in $(seq 1 60); do
-  if curl -fsS -o /dev/null "http://127.0.0.1:$port/-/health/ready/"; then
-    echo "Deployed $sha to $env"
+  if curl -fsS -o /dev/null http://127.0.0.1:9000/-/health/ready/; then
+    echo "Deployed $sha"
     docker image prune -f >/dev/null
     exit 0
   fi

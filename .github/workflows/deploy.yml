@@ -7,7 +7,7 @@ name: Deploy
 #
 # Uses the GitHub Environment `production`. Add "Required reviewers" in
 # Settings > Environments > production for a manual approval before each deploy.
-# Repository secrets (shared with deploy-qa.yml): AUTH_SSH_PRIVATE_KEY, AUTH_SSH_KNOWN_HOSTS,
+# Repository secrets: AUTH_SSH_PRIVATE_KEY, AUTH_SSH_KNOWN_HOSTS,
 # AUTH_SSH_HOST, AUTH_SSH_PORT, AUTH_SSH_USER. The server holds `.env` itself;
 # no application secret is ever stored in GitHub.
 
@@ -65,4 +65,4 @@ jobs:
           SSH_USER: ${{ secrets.AUTH_SSH_USER }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
-            'bash -s' -- prod "$GITHUB_SHA" < scripts/deploy.sh
+            'bash -s' -- "$GITHUB_SHA" < scripts/deploy.sh
