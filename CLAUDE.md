@@ -12,7 +12,8 @@ Compose; this repo is configuration and docs only, no application code.
 - Pin `AUTHENTIK_TAG` to an exact release. Upgrade one release at a time.
 - Validate config changes with `PG_PASS=x AUTHENTIK_SECRET_KEY=y docker compose config -q`
   (needs an `.env` file to exist; copy `.env.example`).
-- Apps registered here: none yet. List each one in the README when added (slug, redirect URI).
+- Registered apps are listed in the README (slug, redirect URIs). Update that table in the same
+  PR whenever an app or redirect URI changes in authentik, since authentik config is not in git.
 - CI and deploy: `ci.yml`; `deploy.yml` (tag `v*`, only from `main`, Environment `production`).
   Server logic lives in `scripts/deploy.sh`; keep it shellcheck-clean. The server owns `.env`;
   GitHub holds only SSH secrets (repository level). One instance serves both `auth` and
