@@ -76,8 +76,8 @@ The app then uses a standard OIDC library with the issuer
 
 | Application | Slug | Redirect URIs | Notes |
 |---|---|---|---|
-| Quranweb (production) | `quranweb` | `https://quranweb.udienz.web.id/api/auth/callback/authentik` | Path is provisional until quranweb picks its OIDC library. |
-| Quranweb QA | `quranweb-qa` | `https://quranweb-qa.udienz.web.id/api/auth/callback/authentik`, `http://localhost:3000/api/auth/callback/authentik` | The localhost URI is for local development and exists only on this app. |
+| Quranweb (production) | `quranweb` | `https://quranweb.udienz.web.id/api/auth/callback/authentik` | Path confirmed (Better Auth). Uses the verified-email scope mapping below. |
+| Quranweb QA | `quranweb-qa` | `https://quranweb-qa.udienz.web.id/api/auth/callback/authentik`, `http://localhost:3000/api/auth/callback/authentik` | The localhost URI is for local development and exists only on this app. Uses the verified-email scope mapping below. |
 
 Both use implicit consent, a confidential client, the self-signed signing key (RS256) and the
 scopes `openid email profile`. Clients must use PKCE with `S256`. Client secrets live only in
@@ -92,6 +92,30 @@ email. People who sign in through a source are `external` users: they can sign i
 cannot open the authentik interface. The only admin is the local `akadmin` account, with
 a strong password and MFA. The Google OAuth app is in Testing mode (test users only) until
 the privacy policy page of the first app exists.
+
+### Scope mapping for `email` (verified email)
+
+authentik's default `email` mapping always sends `"email_verified": false`, so apps that require a
+verified email (quranweb's admin page) could never trust one. Both quranweb providers (`quranweb`,
+`quranweb-qa`) use a custom scope mapping instead of the default one (created 2026-11-18):
+
+- Name: `udienz: OpenID email (verified when from Google)`, scope `email`.
+- `email_verified` is `true` only for **external** users connected to the `google` source: Google
+  verified that address and external users cannot change their email themselves. Internal accounts,
+  including `akadmin` (even though it is linked to Google), stay `false`, because their email was typed
+  by hand. Do not change it to always `true`: an internal account created with someone else's address
+  would then be trusted as that person.
+
+```python
+from authentik.core.models import UserSourceConnection, UserTypes
+verified = request.user.type == UserTypes.EXTERNAL and UserSourceConnection.objects.filter(
+    user=request.user, source__slug="google"
+).exists()
+return {"email": request.user.email, "email_verified": verified}
+```
+
+A new app that needs a verified email should use this mapping too (Providers > the provider >
+Advanced protocol settings > Scopes: remove the default `email` mapping, add this one).
 
 ## Operations
 
