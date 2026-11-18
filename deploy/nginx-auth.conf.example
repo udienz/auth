@@ -17,6 +17,22 @@ server {
 
     client_max_body_size 5m;
 
+    # Public pages for Google's OAuth consent screen: home page and privacy policy. They are
+    # rendered by scripts/render-public.sh into /srv/auth/site on every deploy. Everything else
+    # goes to authentik. `/` is served here, so authentik's own redirect from `/` is not used;
+    # people reach the sign-in flow from the apps, and the admin uses /if/admin/.
+    location = / {
+        root /srv/auth/site;
+        try_files /index.html =404;
+    }
+    location = /privacy {
+        root /srv/auth/site;
+        try_files /privacy.html =404;
+    }
+    location ^~ /public-assets/ {
+        alias /srv/auth/site/;
+    }
+
     location / {
         proxy_pass http://127.0.0.1:9000;
         proxy_http_version 1.1;

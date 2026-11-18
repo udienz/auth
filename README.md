@@ -25,6 +25,16 @@ tunnel) in front of it for `auth.udienz.web.id` with TLS. An nginx example (with
 support and the certbot steps) is in `deploy/nginx-auth.conf.example`. First setup: open
 `https://auth.udienz.web.id/if/flow/initial-setup/` and create the admin account right away.
 
+## Public pages (home and privacy policy)
+
+Google's OAuth consent screen needs a public home page and a privacy policy link. They are static
+files in `public/` (`index.html`, `privacy.html`, `style.css`), served by nginx at
+`https://auth.udienz.web.id/` and `https://auth.udienz.web.id/privacy`, not by authentik. Each
+deploy runs `scripts/render-public.sh`, which copies them to `site/` (git-ignored) and fills in
+the contact from `PRIVACY_CONTACT_EMAIL` in the server's `.env` (the address is not in git). The
+nginx locations are in `deploy/nginx-auth.conf.example`; add them to the live site config once and
+reload nginx. Edit `privacy.html` whenever what the service stores or who receives it changes.
+
 ## Deploy (GitHub Actions)
 
 - **CI** (`ci.yml`, every push to `main` and every PR): validates `docker-compose.yml`, checks that
@@ -91,7 +101,9 @@ identifier", so a Google login never merges into an existing local account, even
 email. People who sign in through a source are `external` users: they can sign in to apps but
 cannot open the authentik interface. The only admin is the local `akadmin` account, with
 a strong password and MFA. The Google OAuth app is in Testing mode (test users only) until
-the privacy policy page of the first app exists.
+the privacy policy page exists (`/privacy`, see Public pages); set the Google consent screen's
+home page and privacy policy link to `https://auth.udienz.web.id/` and
+`https://auth.udienz.web.id/privacy`, with `udienz.web.id` as an authorized domain.
 
 ### Scope mapping for `email` (verified email)
 

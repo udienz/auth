@@ -27,6 +27,7 @@ if docker compose ps --status running --services 2>/dev/null | grep -qx postgres
 fi
 
 git checkout --quiet --detach "$sha"
+bash scripts/render-public.sh
 docker compose pull --quiet
 docker compose up -d --remove-orphans
 
