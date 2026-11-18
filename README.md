@@ -100,17 +100,16 @@ verified email (quranweb's admin page) could never trust one. Both quranweb prov
 `quranweb-qa`) use a custom scope mapping instead of the default one (created 2026-11-18):
 
 - Name: `udienz: OpenID email (verified when from Google)`, scope `email`.
-- `email_verified` is `true` only for **external** users connected to the `google` source: Google
-  verified that address and external users cannot change their email themselves. Internal accounts,
-  including `akadmin` (even though it is linked to Google), stay `false`, because their email was typed
-  by hand. Do not change it to always `true`: an internal account created with someone else's address
-  would then be trusted as that person.
+- `email_verified` is `true` for users linked to the `google` source that are either **external** (created by
+  that source; they cannot change their email themselves) or the **superuser** `akadmin`, which the owner linked to
+  their Google account (owner's decision, 2026-11-18, so that address can be an app admin). Every other internal
+  account stays `false`, because its email was typed by hand. Do not change it to always `true`: an internal account
+  created with someone else's address would then be trusted as that person.
 
 ```python
 from authentik.core.models import UserSourceConnection, UserTypes
-verified = request.user.type == UserTypes.EXTERNAL and UserSourceConnection.objects.filter(
-    user=request.user, source__slug="google"
-).exists()
+linked = UserSourceConnection.objects.filter(user=request.user, source__slug="google").exists()
+verified = linked and (request.user.type == UserTypes.EXTERNAL or request.user.is_superuser)
 return {"email": request.user.email, "email_verified": verified}
 ```
 
