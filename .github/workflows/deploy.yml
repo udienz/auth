@@ -1,6 +1,6 @@
 name: Deploy
 
-# Deploys to https://auth.udin.web.id when a `v*` release tag is pushed:
+# Deploys to https://auth.udienz.web.id when a `v*` release tag is pushed:
 #   git tag -a v1.0.0 -m "..." && git push origin v1.0.0
 # Only commits that are already on `main` can be released. To roll back, press
 # "Run workflow" and pick an older tag (or re-run an older run).
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://auth.udin.web.id
+      url: https://auth.udienz.web.id
     steps:
       - name: Checkout
         uses: actions/checkout@v4
