@@ -85,15 +85,20 @@ The app then uses a standard OIDC library with the issuer
 
 ### Registered apps
 
-| Application | Slug | Redirect URIs | Notes |
-|---|---|---|---|
-| Quranweb (production) | `quranweb` | `https://quranweb.udienz.web.id/api/auth/callback/authentik` | Path confirmed (Better Auth). Uses the verified-email scope mapping below. |
-| Quranweb QA | `quranweb-qa` | `https://quranweb-qa.udienz.web.id/api/auth/callback/authentik`, `http://localhost:3000/api/auth/callback/authentik` | The localhost URI is for local development and exists only on this app. Uses the verified-email scope mapping below. |
+| Application | Slug | Redirect URIs (Authorization) | Redirect URIs (Logout) | Notes |
+|---|---|---|---|---|
+| Quranweb (production) | `quranweb` | `https://quranweb.udienz.web.id/api/auth/callback/authentik` | `https://quranweb.udienz.web.id/` | Path confirmed (Better Auth). Uses the verified-email scope mapping below. |
+| Quranweb QA | `quranweb-qa` | `https://quranweb-qa.udienz.web.id/api/auth/callback/authentik`, `http://localhost:3000/api/auth/callback/authentik` | `https://quranweb-qa.udienz.web.id/`, `http://localhost:3000/` | The localhost URIs are for local development and exist only on this app. Uses the verified-email scope mapping below. |
 
 Both use implicit consent, a confidential client, the self-signed signing key (RS256) and the
 scopes `openid email profile`. Clients must use PKCE with `S256`. Client secrets live only in
 each app's server environment, never in git. Update this table whenever an app or redirect URI
 changes.
+
+A Logout URI (type Logout, matching mode strict) is where authentik sends the reader after an app signs them out
+through the provider's `end-session` endpoint (RP-initiated logout). authentik 2026.8 honours
+`post_logout_redirect_uri` only for a registered Logout URI and only with `id_token_hint`. With no Logout URI on a
+provider it ignores the parameter, and the reader ends on `https://auth.udienz.web.id/`.
 
 ### Sign-in sources and account types
 
